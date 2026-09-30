@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.View
 import android.widget.TextView
 import kotlin.random.Random
+import kotlin.random.nextInt
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,9 +17,21 @@ class MainActivity : AppCompatActivity() {
         // You can test your helper functions by  calling them from onCreate() and
         // printing their output to the Log, which is visible in the LogCat:
         // eg. Log.d("function output", getTestDataArray().toString())
+        val testDataArray = getTestDataArray()
+        Log.d("ScopeFunctions","testDataArray = $testDataArray")
 
+        val testDataArrayDouble = testDataArray.map{it.toDouble()}
+        val avgLessMed = averageLessThanMedian(testDataArrayDouble)
+        Log.d("ScopeFunction", "avgLessmed = $avgLessMed")
+
+        val data = listOf(1,2,3)
+        val view1 = getView(0,null,data,this)
+        Log.d("ScopeFunction", "view1 text = $(view1")
+
+        val view2 = getView(1, view1, data, this)
+        Log.d("ScopeFunction", "view2 text = ${(view2 as TextView).text}")
+        Log.d("ScopeFunction", "Same Object? ${view1 === view2}")
     }
-
 
     /* Convert all the helper functions below to Single-Expression Functions using Scope Functions */
     // eg. private fun getTestDataArray() = ...
@@ -27,39 +40,29 @@ class MainActivity : AppCompatActivity() {
     // Look at the final/return value and build the function "working backwards"
 
     // Return a list of random, sorted integers
-    private fun getTestDataArray() : List<Int> {
-        val testArray = MutableList(10){ Random.nextInt()}
-        testArray.sort()
-        return testArray
-    }
+    private fun getTestDataArray() : List<Int> =
+       MutableList(10) {Random.nextInt()}.apply { sort() }
+
 
     // Return true if average value in list is greater than median value, false otherwise
-    private fun averageLessThanMedian(listOfNumbers: List<Double>): Boolean {
-        val avg = listOfNumbers.average()
-        val sortedList = listOfNumbers.sorted()
-        val median = if (sortedList.size % 2 == 0)
-            (sortedList[sortedList.size / 2] + sortedList[(sortedList.size - 1) / 2]) / 2
-        else
-            sortedList[sortedList.size / 2]
+    private fun averageLessThanMedian(listOfNumbers: List<Double>): Boolean =
+        listOfNumbers.average() < listOfNumbers.sorted()
+            .let {sortedList ->
+                if(sortedList.size % 2 == 0)
+                    (sortedList[sortedList.size / 2] + sortedList[(sortedList.size -1) /2]) /2
+                else
+                    sortedList[sortedList.size/2]
+            }
 
-        return avg < median
-    }
+
 
     // Create a view from an item in a collection, but recycle if possible (similar to an AdapterView's adapter)
-    private fun getView(position: Int, recycledView: View?, collection: List<Int>, context: Context): View {
-        val textView: TextView
-
-        if (recycledView != null) {
-            textView = recycledView as TextView
-        } else {
-            textView = TextView(context)
-            textView.setPadding(5, 10, 10, 0)
-            textView.textSize = 22f
+    private fun getView(position: Int, recycledView: View?, collection: List<Int>, context: Context): View =
+        ((recycledView as? TextView) ?: TextView(context).apply{
+            setPadding(5, 10, 10, 0)
+            textSize = 22f
+        }).also {
+            it.text = collection[position].toString()
         }
-
-        textView.text = collection[position].toString()
-
-        return textView
-    }
 
 }
